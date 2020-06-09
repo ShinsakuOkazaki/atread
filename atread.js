@@ -6,9 +6,9 @@ const url = require('url');
 
 	    
 app = express();
-var credentials = require('./credentials.js');
+const credentials = require('./credentials.js');
 // set up handlebars view engine
-var handlebars = require('express3-handlebars')
+const handlebars = require('express3-handlebars')
 	.create({ defaultLayout:'main' });
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
@@ -18,7 +18,7 @@ app.set('port', process.env.PORT || 3000);
 // use domains for better error handling
 app.use(function(req, res, next){
     // create a domain for this request
-    var domain = require('domain').create();
+    const domain = require('domain').create();
     // handle errors on this domain
     domain.on('error', function(err){
         console.error('DOMAIN ERROR CAUGHT\n', err.stack);
@@ -30,7 +30,7 @@ app.use(function(req, res, next){
             }, 5000);
 
             // disconnect from the cluster
-            var worker = require('cluster').worker;
+            const worker = require('cluster').worker;
             if(worker) worker.disconnect();
 
             // stop taking new requests
@@ -72,8 +72,8 @@ switch(app.get('env')){
         break;
 }
 
-var MongoSessionStore = require('connect-mongo')(session);
-var sessionStore = new MongoSessionStore({url: credentials.mongo[app.get('env')].connectionString});
+const MongoSessionStore = require('connect-mongo')(session);
+const sessionStore = new MongoSessionStore({url: credentials.mongo[app.get('env')].connectionString});
 
 
 app.use(require('body-parser')());
@@ -88,8 +88,8 @@ app.use(require('express-session')({
 app.use(express.static(__dirname + '/public'));
 
 
-var mongoose = require('mongoose');
-var opts = {
+const mongoose = require('mongoose');
+const opts = {
 	server: {
 		socketOptions: {keepAlive: 1}
 	}
@@ -152,10 +152,10 @@ app.get('/library', function(req, res) {
 
 ///////
 
-var rest = require('connect-rest');
+const rest = require('connect-rest');
 
 // API configuration
-var apiOptions = {
+const apiOptions = {
     context: '/api',
     domain: require('domain').create(),
 };
@@ -167,14 +167,14 @@ apiOptions.domain.on('error', function(err){
         process.exit(1);
     }, 5000);
     server.close();
-    var worker = require('cluster').worker;
+    const worker = require('cluster').worker;
     if(worker) worker.disconnect();
 });
 
 
 
 // // authentication
-// var auth = require('./lib/auth.js')(app, {
+// const auth = require('./lib/auth.js')(app, {
 // 	baseUrl: process.env.BASE_URL,
 // 	providers: credentials.authProviders,
 // 	successRedirect: '/account',
@@ -186,12 +186,15 @@ apiOptions.domain.on('error', function(err){
 // // now we can specify our auth routes:
 // auth.registerRoutes();
 async function getVolumeOfShelf() {
-    console.log('Got authenticated client');
     const volumes = await books.mylibrary.bookshelves.volumes.list({
         maxResults: 5, 
         shelf: 3,
     });
-    return volumes;
+    return volumes.data;
+}
+
+async function getBookshelves() {
+    const bookshelves = await books.mylibrary.bookshelves.list();
 }
 
 app.get('/auth/google/callback', async function (req, res) {
@@ -199,6 +202,7 @@ app.get('/auth/google/callback', async function (req, res) {
         const qs = new url.URL(req.url, 'http://localhost:3000')
               .searchParams;
         const {tokens} = await oauth2Client.getToken(qs.get('code'));
+
         oauth2Client.credentials = tokens;
         res.redirect(303, '/account');
     }
@@ -210,17 +214,17 @@ app.get('/unauthorized', function(req, res) {
 
 app.get('/account', async function(req, res){
     const volumes = await getVolumeOfShelf();
-    //console.log("Volumes: " + JSON.stringify(volumes));
+    console.log("Volumes: " + JSON.stringify(volumes));
 	res.render('account');
 });
 
 
 // a
 // add support for auto views
-var autoViews = {};
+const autoViews = {};
 
 app.use(function(req,res,next){
-    var path = req.path.toLowerCase();  
+    const path = req.path.toLowerCase();  
     // check cache; if it's there, render the view
     if(autoViews[path]) return res.render(autoViews[path]);
     // if it's not in the cache, see if there's
@@ -247,7 +251,7 @@ app.use(function(err, req, res, next){
 });
 
 
-var server = http.createServer(app).listen(app.get('port'), function () {
+const server = http.createServer(app).listen(app.get('port'), function () {
     console.log('Express started in ' + app.get('env') +
         'mode on http://me.mydomain.com:' + app.get('port') + ' using HTTP' +
         '; press Ctrl-C to terminate.');

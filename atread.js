@@ -1,10 +1,12 @@
 const http = require('http');
 const express = require('express');
-const session = require('express-session');
 const fs = require('fs');
-const url = require('url');
+const session = require('express-session');
+// const expressValidator = require('express-validator');
+const {google} = require('googleapis');
+const books = google.books('v1');
 
-	    
+
 app = express();
 const credentials = require('./credentials.js');
 // set up handlebars view engine
@@ -12,9 +14,7 @@ const handlebars = require('express3-handlebars')
 	.create({ defaultLayout:'main' });
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
-
 app.set('port', process.env.PORT || 3000);
-
 // use domains for better error handling
 app.use(function(req, res, next){
     // create a domain for this request
@@ -60,6 +60,10 @@ app.use(function(req, res, next){
     domain.run(next);
 });
 
+
+
+
+
 // logging
 switch(app.get('env')){
     case 'development':
@@ -75,17 +79,17 @@ switch(app.get('env')){
 const MongoSessionStore = require('connect-mongo')(session);
 const sessionStore = new MongoSessionStore({url: credentials.mongo[app.get('env')].connectionString});
 
-
+// static middleware: it is equivarent to creating a route for each static file you want to 
+// deliver that renders a file and returns it to the client.
+app.use(express.static(__dirname + '/public'));
 app.use(require('body-parser')());
 app.use(require('cookie-parser')(credentials.cookieSecret));
-app.use(require('express-session')({
-    resave: false,
-    saveUninitialized: false,
-    secret: credentials.cookieSecret,
+app.use(session({
+	resave: false,
+	saveUninitialized: false,
+	secret: credentials.cookieSecret,
 	store: sessionStore,
 }));
-
-app.use(express.static(__dirname + '/public'));
 
 
 const mongoose = require('mongoose');
@@ -106,85 +110,35 @@ switch(app.get('env')) {
 		throw new Error('Unknown execution environment: ' + app.get('env'));
 }
 
+const auth = require('./lib/auth.js')(app);
+auth.init();
 
-app.get('/', function(req, res) {
-	res.render('home');
-});
+// app.use(expressValidator());
 
+require('./routes.js')(app);
 
-///////////////////////////////
-const {google} = require('googleapis');
-const books = google.books('v1');
-
-const env = app.get('env');
-const config = credentials.authProviders;
-
-
-const oauth2Client =  new google.auth.OAuth2(
-    config.google[env].clientID,
-    config.google[env].clientSecret,
-    'http://me.mydomain.com:3000/auth/google/callback',
-);
-
-
-google.options({auth: oauth2Client});
-
-const scopes = [
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-    'https://www.googleapis.com/auth/books',
-];
-
-
-
-const authorizeUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: scopes,
-});
-
-
-
-app.get('/library', function(req, res) {
-    res.redirect(303, authorizeUrl);
-});
-
-
-
-///////
-
-const rest = require('connect-rest');
+// const rest = require('connect-rest');
 
 // API configuration
-const apiOptions = {
-    context: '/api',
-    domain: require('domain').create(),
-};
+// const apiOptions = {
+//     context: '/api',
+//     domain: require('domain').create(),
+// };
 
-apiOptions.domain.on('error', function(err){
-    console.log('API domain error.\n', err.stack);
-    setTimeout(function(){
-        console.log('Server shutting down after API domain error.');
-        process.exit(1);
-    }, 5000);
-    server.close();
-    const worker = require('cluster').worker;
-    if(worker) worker.disconnect();
-});
-
-
-
-// // authentication
-// const auth = require('./lib/auth.js')(app, {
-// 	baseUrl: process.env.BASE_URL,
-// 	providers: credentials.authProviders,
-// 	successRedirect: '/account',
-// 	failureRedirect: '/unauthorized',
+// apiOptions.domain.on('error', function(err){
+//     console.log('API domain error.\n', err.stack);
+//     setTimeout(function(){
+//         console.log('Server shutting down after API domain error.');
+//         process.exit(1);
+//     }, 5000);
+//     server.close();
+//     const worker = require('cluster').worker;
+//     if(worker) worker.disconnect();
 // });
-// // auth.init() links in Passport middleware:
-// auth.init();
 
-// // now we can specify our auth routes:
-// auth.registerRoutes();
+
+
+
 async function getVolumeOfShelf() {
     const volumes = await books.mylibrary.bookshelves.volumes.list({
         maxResults: 5, 
@@ -197,29 +151,9 @@ async function getBookshelves() {
     const bookshelves = await books.mylibrary.bookshelves.list();
 }
 
-app.get('/auth/google/callback', async function (req, res) {
-        // we only get here on successful authentication
-        const qs = new url.URL(req.url, 'http://localhost:3000')
-              .searchParams;
-        const {tokens} = await oauth2Client.getToken(qs.get('code'));
-
-        oauth2Client.credentials = tokens;
-        res.redirect(303, '/account');
-    }
-);
-
-app.get('/unauthorized', function(req, res) {
-	res.status(403).render('unauthorized');
-});
-
-app.get('/account', async function(req, res){
-    const volumes = await getVolumeOfShelf();
-    console.log("Volumes: " + JSON.stringify(volumes));
-	res.render('account');
-});
 
 
-// a
+
 // add support for auto views
 const autoViews = {};
 

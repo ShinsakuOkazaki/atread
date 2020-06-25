@@ -1,15 +1,20 @@
 
 const mongoose = require('mongoose');
-const shelfSchema = mongoose.Schema({
-    googleBooksId: Number, 
+const shelfSchema = mongoos.Schema({
+    googleShelfId: Integer,
     title: String, 
     description: String,
     isPublic: Boolean, 
     updated: Date, 
     created: Date, 
     volumeCount: Number, 
-    volumes: [String], // volumeId
+    volumes: [{type: mongoose.Schema.Types.ObjectId, ref: "Volume"}],
+    owner: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
 });
 
 const Shelf = mongoose.model('Shelf', shelfSchema);
-module.exports = Shelf;
+shelfSchema.static.findShelfOrCreate = function() {
+    return this.model("Shelf")
+     .
+}
+module.exports.Shelf = Shelf;

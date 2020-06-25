@@ -2,9 +2,8 @@ const http = require('http');
 const express = require('express');
 const fs = require('fs');
 const session = require('express-session');
+const User = require('./models/user.js');
 // const expressValidator = require('express-validator');
-const {google} = require('googleapis');
-const books = google.books('v1');
 
 
 app = express();
@@ -110,8 +109,8 @@ switch(app.get('env')) {
 		throw new Error('Unknown execution environment: ' + app.get('env'));
 }
 
-const auth = require('./lib/auth.js')(app);
-auth.init();
+mongoose.Promise = global.Promise;
+
 
 // app.use(expressValidator());
 
@@ -136,20 +135,6 @@ require('./routes.js')(app);
 //     if(worker) worker.disconnect();
 // });
 
-
-
-
-async function getVolumeOfShelf() {
-    const volumes = await books.mylibrary.bookshelves.volumes.list({
-        maxResults: 5, 
-        shelf: 3,
-    });
-    return volumes.data;
-}
-
-async function getBookshelves() {
-    const bookshelves = await books.mylibrary.bookshelves.list();
-}
 
 
 

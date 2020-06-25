@@ -1,16 +1,31 @@
 const mongoose = require('mongoose');
+
 const volumeSchema = mongoose.Schema({
-   title: String, 
+   googleVolumeId: {
+      type: String,
+      unique: true, 
+   },
+   title: {
+      type: String, 
+      unique: true,
+   },
    subtitle: String, 
-   authorIds: [String], // authorId in platform
+   authorIds: [{type: mongoose.Schema.Types.ObjectId, ref: "User"}], // authorId in platform
    authors: [String], // names of author member
    publisher: String,
-   publishDate: Date, 
+   publishedDate: Date, 
    categories: String, 
-   imageLinks: [String], // google api image links or url of author specified image.
+   imageLinks: {
+      smallThumbnail: String,
+      thumbnail: String,
+      small: String,
+      medium: String,
+      large: String,
+      extraLarge: String,
+   }, // google api image links or url of author specified image.
    language: String, 
-   bookmarks: Number, 
 });
 
 const Volume = mongoose.model('volume', volumeSchema);
-module.exports = Volume;
+module.exports.Volume = Volume;
+module.exports.volumeSchema = volumeSchema;

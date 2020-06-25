@@ -3,17 +3,20 @@ const passportLocalMongoose = require('passport-local-mongoose');
 const userSchema = mongoose.Schema({
 	email: String,
 	authId: String, 
-	token: String,
-	accountName: String, // displayed name 
+	tokens: {
+		access_token: String, 
+		refresh_token: String,
+	},
+	displayNameName: String, // displayed name 
 	created: Date,
-	profile: String,
+	profile: String, 
 	firstName: String,
 	lastName: String,
-	follows: [String], // userId
-	friends: [String], // userId
+	follows: [{type: mongoose.Schema.Types.ObjectId, ref: "User"}], // userId
+	friends: [{type: mongoose.Schema.Types.ObjectId, ref: "User"}], // userId
 	isAuthor: Boolean, 
 	publishments: [String], //volumeId
-	shelves: [String], // shelfId
+	shelves: [{type: mongoose.Schema.Types.ObjectId, ref: "Shelf"}], // shelfId
 	//password: String,
 	
 });
@@ -26,4 +29,4 @@ userSchema.plugin(passportLocalMongoose, {
 	usernameField: "email"
 });
 const User = mongoose.model('User', userSchema);
-module.exports = User;
+module.exports.User = User;

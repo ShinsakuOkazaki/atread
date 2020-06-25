@@ -1,14 +1,14 @@
 
-const User = require("../models/user");
-const getUserParams = body => {
-        return {
-            firstName: body.firstName,
-            lastName: body.lastName,
-            email: body.email,
-            accountName: body.accountName,
-            password: body.password,
-        };
-    };
+const {User} = require("../models/user");
+// const getUserParams = body => {
+//         return {
+//             firstName: body.firstName,
+//             lastName: body.lastName,
+//             email: body.email,
+//             accountName: body.accountName,
+//             password: body.password,
+//         };
+//     };
 
 module.exports = {
     index: (req, res, next) => {
@@ -31,21 +31,22 @@ module.exports = {
         res.render("users/new");
     },
 
-    create: (req, res, next) => {
-        if (req.skip) next();
-        let newUser = new User(getUserParams(req.body));
-        User.register(newUser, req.body.password, (error, user) => {
-            if (user) {
-                req.flash("success", `${user.fullName}'s account created successfully!`);
-                res.locals.redirect = "/users";
-                next();
-            } else {
-                req.flash("error", `Failed to create user account because: ${error.message}.`);
-                res.locals.redirect = "/users/new";
-                next();
-            }
-        });
-    },
+    // An User is created when user authenticated first time
+    // create: (req, res, next) => {
+    //     //if (req.skip) next();
+    //     let newUser = new User(getUserParams(req.body));
+    //     User.register(newUser, req.body.password, (error, user) => {
+    //         if (user) {
+    //             req.flash("success", `${user.fullName}'s account created successfully!`);
+    //             res.locals.redirect = "/users";
+    //             next();
+    //         } else {
+    //             req.flash("error", `Failed to create user account because: ${error.message}.`);
+    //             res.locals.redirect = "/users/new";
+    //             next();
+    //         }
+    //     });
+    // },
 
     redirectView: (req, res, next) => {
         let redirectPath = res.locals.redirect;

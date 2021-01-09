@@ -15,6 +15,5 @@ const shelfSchema = mongoos.Schema({
 const Shelf = mongoose.model('Shelf', shelfSchema);
 shelfSchema.static.findShelfOrCreate = function() {
     return this.model("Shelf")
-     .
 }
 module.exports.Shelf = Shelf;

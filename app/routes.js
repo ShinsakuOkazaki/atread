@@ -12,7 +12,7 @@ module.exports = function(app) {
     //app.post('users/create', usersController.create, usersController.redirectView);
     //app.get('/users/login', usersController.login);
    // app.post('/users/login', usersController.authenticate, usersController.redirectView);
-    const auth = require('./lib/auth.js')(app);
+    const auth = require('/lib/auth.js')(app);
     auth.init();
     app.get('/auth/google', auth.login);
     app.get('/auth/google/callback', auth.authenticate, auth.redirect);
